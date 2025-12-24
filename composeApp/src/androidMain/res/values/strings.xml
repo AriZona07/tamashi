@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">tamashi</string>
+    <!--
+        Este valor se genera automáticamente por el plugin de Google Services al compilar,
+        pero a veces el IDE no lo detecta hasta que se hace un build exitoso.
+
+        Si sigue dando error, asegúrate de que tu google-services.json está en la carpeta correcta
+        (composeApp/) y que has hecho un "Sync Project with Gradle Files".
+
+        Como fallback temporal para que el IDE no se queje, puedes poner aquí tu Web Client ID real
+        (el que termina en .apps.googleusercontent.com), pero lo ideal es dejar que el plugin lo maneje.
+    -->
+    <string name="default_web_client_id" translatable="false">YOUR_WEB_CLIENT_ID_HERE</string>
+</resources>
