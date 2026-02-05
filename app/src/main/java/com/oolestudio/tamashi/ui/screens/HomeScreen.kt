@@ -28,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +38,6 @@ import com.oolestudio.tamashi.ui.getIconForCategory
 import com.oolestudio.tamashi.ui.screens.playlist.CreatePlaylistScreen
 import com.oolestudio.tamashi.ui.screens.playlist.PlaylistDetailScreen
 import com.oolestudio.tamashi.viewmodel.HomeViewModel
-import kotlinx.coroutines.launch
 
 // Sealed class para manejar la navegación interna dentro de la pestaña de Inicio (Home).
 // Permite cambiar entre la lista de playlists, la creación de una nueva y el detalle de una existente.
@@ -57,11 +55,11 @@ private sealed class HomeScreenNav {
 fun HomeScreen(homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
     // Estado para controlar qué sub-pantalla se muestra actualmente.
     var currentScreen by remember { mutableStateOf<HomeScreenNav>(HomeScreenNav.List) }
-    // Scope para lanzar corrutinas (operaciones asíncronas) desde la UI.
-    val scope = rememberCoroutineScope()
 
     // Renderiza la pantalla correspondiente según el estado actual.
-    when (val screen = currentScreen) {
+    // Se usa `when (currentScreen)` directamente para evitar la advertencia de "variable no utilizada"
+    // que ocurría con `when (val screen = currentScreen)`, ya que no todas las ramas usaban `screen`.
+    when (currentScreen) {
         is HomeScreenNav.List -> {
             PlaylistListScreen(
                 homeViewModel = homeViewModel,
@@ -76,18 +74,17 @@ fun HomeScreen(homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
         is HomeScreenNav.Create -> {
             CreatePlaylistScreen(
                 onCreatePlaylist = { playlistName, category, colorHex ->
-                    scope.launch {
-                        // Llamamos al ViewModel para crear la playlist y luego volvemos a la lista.
-                        homeViewModel.createPlaylist(playlistName, category, colorHex)
-                        currentScreen = HomeScreenNav.List
-                    }
+                    // Llamamos al ViewModel para crear la playlist y luego volvemos a la lista.
+                    homeViewModel.createPlaylist(playlistName, category, colorHex)
+                    currentScreen = HomeScreenNav.List
                 },
                 onBack = { currentScreen = HomeScreenNav.List }
             )
         }
         is HomeScreenNav.Detail -> {
             PlaylistDetailScreen(
-                playlistName = screen.playlist.name,
+                // Gracias al "smart casting" de Kotlin, podemos acceder a `playlist` directamente.
+                playlistName = (currentScreen as HomeScreenNav.Detail).playlist.name,
                 viewModel = homeViewModel,
                 onBack = { currentScreen = HomeScreenNav.List }
             )
@@ -172,11 +169,9 @@ private fun PlaylistItem(
 ) {
     // Intentamos parsear el color hexadecimal, si falla usamos un color por defecto.
     val backgroundColor = try {
-        // CORRECCIÓN: Usamos una función manual para parsear el color hexadecimal
-        // en lugar de depender de 'android.graphics.Color', que no existe en código común (Multiplatform).
         val colorInt = playlist.colorHex.removePrefix("#").toLong(16)
         Color(colorInt or 0xFF00000000) // Aseguramos que el canal Alpha sea opaco si no viene incluido
-    } catch (e: Exception) {
+    } catch (_: Exception) { // Se usa `_` para indicar que el parámetro de la excepción no se utiliza.
         MaterialTheme.colorScheme.surfaceVariant
     }
 
