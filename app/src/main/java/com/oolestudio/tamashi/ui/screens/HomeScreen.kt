@@ -2,6 +2,9 @@ package com.oolestudio.tamashi.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,12 +35,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.oolestudio.tamashi.data.Playlist
 import com.oolestudio.tamashi.ui.getIconForCategory
 import com.oolestudio.tamashi.ui.screens.playlist.CreatePlaylistScreen
 import com.oolestudio.tamashi.ui.screens.playlist.PlaylistDetailScreen
+import com.oolestudio.tamashi.ui.tutorial.TutorialOverlay
 import com.oolestudio.tamashi.viewmodel.HomeViewModel
+import com.oolestudio.tamashi.viewmodel.tutorial.TutorialViewModel
+import com.oolestudio.tamashi.data.tutorial.TutorialRepositoryImpl
+import com.oolestudio.tamashi.data.tutorial.TutorialStep
 
 // Sealed class para manejar la navegación interna dentro de la pestaña de Inicio (Home).
 // Permite cambiar entre la lista de playlists, la creación de una nueva y el detalle de una existente.
@@ -56,6 +64,11 @@ fun HomeScreen(homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
     // Estado para controlar qué sub-pantalla se muestra actualmente.
     var currentScreen by remember { mutableStateOf<HomeScreenNav>(HomeScreenNav.List) }
 
+    // Instancia local del TutorialViewModel (reutilizable por esta pantalla)
+    val tutorialViewModel = remember {
+        TutorialViewModel(TutorialRepositoryImpl())
+    }
+
     // Renderiza la pantalla correspondiente según el estado actual.
     // Se usa `when (currentScreen)` directamente para evitar la advertencia de "variable no utilizada"
     // que ocurría con `when (val screen = currentScreen)`, ya que no todas las ramas usaban `screen`.
@@ -68,8 +81,35 @@ fun HomeScreen(homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
                     homeViewModel.selectPlaylist(playlist.id)
                     currentScreen = HomeScreenNav.Detail(playlist)
                 },
-                modifier = modifier
+                modifier = modifier,
+                // Callback para iniciar tutorial desde la lista si corresponde
+                onStartTutorial = {
+                    val steps = listOf(
+                        com.oolestudio.tamashi.data.tutorial.TutorialStep(
+                            id = "step1",
+                            tamashiName = "bublu",
+                            text = "Te enseñaré a crear tu primera playlist",
+                            assetName = "asset_tamashi_bublu",
+                            nextStepId = "step2"
+                        ),
+                        com.oolestudio.tamashi.data.tutorial.TutorialStep(
+                            id = "step2",
+                            tamashiName = "bublu",
+                            text = "Toca el botón Nueva Playlist para comenzar",
+                            assetName = "asset_tamashi_bublu",
+                            nextStepId = null
+                        )
+                    )
+                    tutorialViewModel.reset()
+                    tutorialViewModel.loadTutorial(
+                        tutorialId = "home_playlists",
+                        steps = steps,
+                        startStepId = "step1"
+                    )
+                }
             )
+            // Overlay persistente del tutorial (se renderiza como un overlay por encima)
+            TutorialOverlay(viewModel = tutorialViewModel)
         }
         is HomeScreenNav.Create -> {
             CreatePlaylistScreen(
@@ -100,7 +140,9 @@ private fun PlaylistListScreen(
     homeViewModel: HomeViewModel,
     onNavigateToCreate: () -> Unit,
     onPlaylistSelected: (Playlist) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // Nuevo: callback para iniciar el tutorial
+    onStartTutorial: () -> Unit
 ) {
     // Observamos el flujo de playlists del ViewModel como un estado de Compose.
     val playlists by homeViewModel.playlists.collectAsState()
@@ -131,6 +173,29 @@ private fun PlaylistListScreen(
                 }
             }
         )
+    }
+
+    // Si no hay playlists, mostramos el botón centrado para iniciar el tutorial.
+    if (playlists.isEmpty()) {
+        Box(modifier = modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .align(Alignment.Center),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Aún no tienes playlists",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
+                )
+                Button(onClick = onStartTutorial) {
+                    Text("Aprender a Agregar una Playlist")
+                }
+            }
+        }
+        return
     }
 
     // Scaffold provee la estructura básica visual (como el botón flotante FAB).
