@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.oolestudio.tamashi.data.Playlist
 import com.oolestudio.tamashi.ui.getIconForCategory
@@ -45,8 +45,12 @@ import com.oolestudio.tamashi.ui.tutorial.TutorialOverlay
 import com.oolestudio.tamashi.viewmodel.HomeViewModel
 import com.oolestudio.tamashi.viewmodel.tutorial.TutorialViewModel
 import com.oolestudio.tamashi.data.tutorial.TutorialRepositoryImpl
-import com.oolestudio.tamashi.data.tutorial.TutorialStep
 import com.oolestudio.tamashi.util.tutorial.TutorialConfig
+
+// Capas visuales en Home:
+// 1) Botón centrado "Aprender a Agregar una Playlist" cuando no hay playlists.
+// 2) FAB "+ Nueva Playlist" sobre la lista cuando hay playlists.
+// 3) Overlay de Tutorial por encima, con Tamashi y globo.
 
 // Sealed class para manejar la navegación interna dentro de la pestaña de Inicio (Home).
 // Permite cambiar entre la lista de playlists, la creación de una nueva y el detalle de una existente.
@@ -198,21 +202,14 @@ private fun PlaylistListScreen(
 
     // Si no hay playlists, mostramos el botón centrado para iniciar el tutorial.
     if (playlists.isEmpty()) {
-        Box(modifier = modifier.fillMaxWidth()) {
+        Box(modifier = modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .align(Alignment.Center),
+                modifier = Modifier.align(Alignment.Center),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Aún no tienes playlists",
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
                 Button(onClick = onStartTutorial) {
-                    Text("Aprender a Agregar una Playlist")
+                    Text("Aprender a Agregar una Playlist", style = MaterialTheme.typography.titleLarge)
                 }
             }
         }

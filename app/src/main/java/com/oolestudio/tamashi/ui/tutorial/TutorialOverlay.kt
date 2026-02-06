@@ -5,9 +5,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,17 +19,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.oolestudio.tamashi.viewmodel.tutorial.TutorialViewModel
+import androidx.compose.ui.unit.dp
 import com.oolestudio.tamashi.util.tutorial.TutorialConfig
 import com.oolestudio.tamashi.util.tutorial.TutorialLayoutUtils
+import com.oolestudio.tamashi.viewmodel.tutorial.TutorialViewModel
 import kotlinx.coroutines.delay
 
+/**
+ * TutorialOverlay: capa de tutorial
+ * - Posiciona Tamashi en esquina inferior derecha.
+ * - Muestra globo encima del Tamashi creciendo hacia arriba.
+ * - Avance sólo por tap (no automático al terminar la animación).
+ */
 @Composable
 fun TutorialOverlay(
     viewModel: TutorialViewModel,
     modifier: Modifier = Modifier,
-    // Callback opcional que se dispara al completar un paso específico
+    // Callback opcional que se dispara al tocar cuando el paso actual terminó de animarse (por ejemplo, navegar)
     onStepCompleted: ((stepId: String) -> Unit)? = null
 ) {
     val ui = viewModel.uiState.collectAsState().value
@@ -49,33 +61,51 @@ fun TutorialOverlay(
         }
         // Al finalizar, marcamos que no está animando
         isAnimating = false
-        // Disparamos callback de paso completado (por ejemplo, para navegar)
-        ui.step?.id?.let { id -> onStepCompleted?.invoke(id) }
+        // Ya no disparamos onStepCompleted aquí; el avance ocurre solo con tap
     }
 
     AnimatedVisibility(visible = ui.visible, enter = fadeIn(), exit = fadeOut()) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(TutorialLayoutUtils.spacing),
-            modifier = modifier.clickable {
-                if (isAnimating) {
-                    // Saltar animación: mostrar texto completo
-                    displayedText = fullText
-                    isAnimating = false
-                } else {
-                    // Avanzar al siguiente paso o cerrar
-                    if (ui.step?.nextStepId != null) viewModel.next() else viewModel.dismiss()
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Avatar en esquina inferior derecha
+            Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                Column(horizontalAlignment = Alignment.End) {
+                    // Globo encima del Tamashi, creciendo hacia arriba
+                    SpeechBubble(
+                        text = displayedText,
+                        modifier = Modifier
+                            .width(TutorialLayoutUtils.bubbleMaxWidth)
+                            .padding(bottom = 8.dp),
+                        showTail = true,
+                        tailSizeDp = 12f,
+                        tailOffsetRightDp = 24f
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(TutorialLayoutUtils.spacing),
+                        modifier = modifier.clickable {
+                            if (isAnimating) {
+                                // Saltar animación: mostrar texto completo
+                                displayedText = fullText
+                                isAnimating = false
+                            } else {
+                                // Al tocar (y ya sin animación), opcionalmente disparamos callback y avanzamos
+                                ui.step?.id?.let { id -> onStepCompleted?.invoke(id) }
+                                if (ui.step?.nextStepId != null) viewModel.next() else viewModel.dismiss()
+                            }
+                        }
+                    ) {
+                        TamashiAvatar(tamashiName = ui.step?.tamashiName ?: TutorialConfig.tamashiName, assetOverride = ui.step?.assetName)
+                    }
                 }
-            }
-        ) {
-            ui.step?.let { step ->
-                TamashiAvatar(tamashiName = step.tamashiName, assetOverride = step.assetName)
-                SpeechBubble(text = displayedText, modifier = Modifier.width(TutorialLayoutUtils.bubbleMaxWidth))
-                Spacer(modifier = Modifier.width(TutorialLayoutUtils.spacing))
             }
         }
     }
 }
 
+/**
+ * TamashiMessageOverlay: overlay genérico para mensajes no tutoriales.
+ * Se suprime el warning de inspección si no se usa aún.
+ */
+@Suppress("unused")
 @Composable
 fun TamashiMessageOverlay(
     text: String,

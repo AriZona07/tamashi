@@ -1,6 +1,7 @@
 package com.oolestudio.tamashi.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,11 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.oolestudio.tamashi.ui.tutorial.SpeechBubble
 import com.oolestudio.tamashi.ui.tutorial.TamashiAvatar
 import com.oolestudio.tamashi.viewmodel.TamashiSelectionViewModel
-import androidx.compose.material3.Icon
 
 @Composable
 fun TamashiSelectionScreen(
@@ -42,7 +42,7 @@ fun TamashiSelectionScreen(
 
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.Center, // Centrar verticalmente todo el contenido
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         SpeechBubble(text = "Elige tu Tamashi")
@@ -54,11 +54,17 @@ fun TamashiSelectionScreen(
         ) {
             // Punta del triángulo: Bublu (clickeable)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val isSelected = ui.selected?.name == (ui.options.firstOrNull()?.name ?: "Bublu")
                 Box(
                     modifier = Modifier
                         .size(140.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(
+                            width = if (isSelected) 4.dp else 0.dp,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = CircleShape
+                        )
                         .clickable { viewModel.selectTamashi(ui.options.first()) },
                     contentAlignment = Alignment.Center
                 ) {
@@ -79,6 +85,7 @@ fun TamashiSelectionScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = { viewModel.confirmSelection(onConfirmed) }, enabled = ui.selected != null) {
             Text("Confirmar")
         }
