@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.oolestudio.tamashi.ui.screens.settings.CreditsScreen
 import com.oolestudio.tamashi.ui.screens.settings.LanguageScreen
 import com.oolestudio.tamashi.ui.screens.settings.NotificationsScreen
 import com.oolestudio.tamashi.ui.screens.settings.ProfileScreen
@@ -31,6 +32,7 @@ private sealed class SettingsScreenNav {
     object Language : SettingsScreenNav()
     object Notifications : SettingsScreenNav()
     object Theme : SettingsScreenNav()
+    object Credits : SettingsScreenNav()
 }
 
 /**
@@ -48,22 +50,32 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 onNavigateToLanguage = { currentSettingsScreen = SettingsScreenNav.Language },
                 onNavigateToNotifications = { currentSettingsScreen = SettingsScreenNav.Notifications },
                 onNavigateToTheme = { currentSettingsScreen = SettingsScreenNav.Theme },
+                onNavigateToCredits = { currentSettingsScreen = SettingsScreenNav.Credits },
                 modifier = modifier
             )
         }
+        // Redirige a ProfileScreen
         is SettingsScreenNav.EditProfile -> ProfileScreen(
             onBack = { currentSettingsScreen = SettingsScreenNav.Main },
             modifier = modifier
         )
+        // Redirige a LanguageScreen
         is SettingsScreenNav.Language -> LanguageScreen(
             onBack = { currentSettingsScreen = SettingsScreenNav.Main },
             modifier = modifier
         )
+        // Redirige a NotificationsScreen
         is SettingsScreenNav.Notifications -> NotificationsScreen(
             onBack = { currentSettingsScreen = SettingsScreenNav.Main },
             modifier = modifier
         )
+        // Redirige a ThemeScreen
         is SettingsScreenNav.Theme -> ThemeScreen(
+            onBack = { currentSettingsScreen = SettingsScreenNav.Main },
+            modifier = modifier
+        )
+        // Redirige a CreditsScreen
+        is SettingsScreenNav.Credits -> CreditsScreen(
             onBack = { currentSettingsScreen = SettingsScreenNav.Main },
             modifier = modifier
         )
@@ -79,6 +91,7 @@ private fun SettingsMenuList(
     onNavigateToLanguage: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToTheme: () -> Unit,
+    onNavigateToCredits: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var soundEffectsMuted by remember { mutableStateOf(false) }
@@ -98,6 +111,7 @@ private fun SettingsMenuList(
             Button(onClick = onNavigateToLanguage, modifier = Modifier.fillMaxWidth()) { Text("Idioma") }
             Button(onClick = onNavigateToNotifications, modifier = Modifier.fillMaxWidth()) { Text("Notificaciones") }
             Button(onClick = onNavigateToTheme, modifier = Modifier.fillMaxWidth()) { Text("Tema") }
+            Button(onClick = onNavigateToCredits, modifier = Modifier.fillMaxWidth()) { Text("Créditos") }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
