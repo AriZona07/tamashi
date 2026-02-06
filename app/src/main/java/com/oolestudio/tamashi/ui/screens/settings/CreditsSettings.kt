@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,12 +18,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import com.oolestudio.tamashi.ui.components.CreditLink
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 
 /**
@@ -101,37 +96,14 @@ fun CreditsScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Texto con enlace para la atribución.
-            // Handler para abrir URLs en el navegador.
-            val uriHandler = LocalUriHandler.current
-
-            val annotatedString = buildAnnotatedString {
-                val text = "Ajolote iconos creados por Rohim - Flaticon"
-                append(text)
-
-                // La nueva forma de crear enlaces. Es más simple y semántica.
-                addLink(
-                    // Envuelve la URL en LinkAnnotation.Url(...)
-                    url = LinkAnnotation.Url("https://www.flaticon.es/iconos-gratis/ajolote"),
-                    start = 0,
-                    end = text.length
-                )
-
-                // Puedes mantener el estilo visual del enlace como lo tenías.
-                addStyle(
-                    style = SpanStyle(
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.primary
-                    ),
-                    start = 0,
-                    end = text.length
-                )
-            }
-            // Componente de texto que abre la URL al ser presionado.
-            Text(
-                text = annotatedString,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+            // Uso del nuevo componente simplificado
+            CreditLink(
+                text = "Ajolote iconos creados por Rohim - Flaticon",
+                url = "https://www.flaticon.es/iconos-gratis/ajolote"
+            )
+            CreditLink(
+                text = "Fondo del logotipo por unsplash.com",
+                url = "https://unsplash.com/"
             )
         }
     }
